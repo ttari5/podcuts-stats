@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>PodCuts stats</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📈</text></svg>">
+<style>
+/* A read-only copy of the review page's Posted numbers. Built by clipper/statsite.py. */
+:root {
+  --bg: #0e0f11; --panel: #16171a; --panel-2: #1c1d21; --line: #27292e; --line-2: #33363c;
+  --text: #ebe9e5; --muted: #8d9097; --faint: #5d6067;
+  --accent: #ffb321; --up: #3ecf8e; --warn: #f0a44b;
+  --yt: #ff5a5f; --ig: #d77bff; --tt: #4fd6d0;
+  color-scheme: dark;
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.45; }
+a { color: inherit; }
+.num { font-variant-numeric: tabular-nums; }
+.wrap { max-width: 880px; margin: 0 auto; padding: 20px 16px 60px; }
+
+header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+.brand { font-weight: 700; font-size: 18px; letter-spacing: .02em; display: flex; align-items: center; gap: 9px; }
+.brand i { width: 10px; height: 20px; border-radius: 2px; background: var(--accent); display: inline-block; }
+.fresh { margin-left: auto; color: var(--muted); font-size: 13px; }
+.fresh.stale { color: var(--warn); }
+.refresh { background: var(--panel-2); border: 1px solid var(--line-2); color: var(--text); border-radius: 8px;
+  padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.refresh:disabled { color: var(--faint); cursor: default; }
+.refresh-note { flex-basis: 100%; text-align: right; font-size: 12px; color: var(--muted); margin-top: -4px; }
+.refresh-note.bad { color: var(--warn); }
+.refresh-note:empty { display: none; }
+
+.tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.tile .k { color: var(--muted); font-size: 12px; }
+.tile .v { font-size: 26px; font-weight: 650; margin-top: 2px; }
+.tile .s { color: var(--muted); font-size: 12px; margin-top: 2px; }
+@media (max-width: 640px) { .tiles { grid-template-columns: repeat(2, 1fr); } .tile .v { font-size: 22px; } }
+
+section { margin-top: 22px; }
+h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin: 0 0 10px; }
+
+.plats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 520px) { .plats { grid-template-columns: 1fr; } }
+.plat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.plat .name { display: flex; align-items: center; gap: 7px; font-weight: 600; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex: none; }
+.plat .v { font-size: 20px; font-weight: 650; margin-top: 4px; }
+.plat .s { color: var(--muted); font-size: 12px; }
+.bar { height: 4px; background: var(--line); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.bar b { display: block; height: 100%; border-radius: 2px; }
+
+.chart { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px 8px; position: relative; }
+.chart svg { display: block; width: 100%; height: 170px; overflow: visible; }
+.chart .plot { position: relative; }
+.chart .ylab { position: absolute; right: 0; color: var(--faint); font-size: 11px; pointer-events: none; }
+.chart .axis { display: flex; justify-content: space-between; color: var(--faint); font-size: 11px; margin-top: 4px; }
+.chart .tip { position: absolute; top: 10px; left: 14px; font-size: 12px; color: var(--muted); }
+.chart .tip b { color: var(--text); font-size: 15px; }
+
+.bar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 3px; }
+.seg button { background: none; border: 0; color: var(--muted); padding: 6px 11px; border-radius: 7px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button.on { background: var(--panel-2); color: var(--text); }
+
+.clip { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; cursor: pointer; transition: border-color .12s; }
+.clip:hover { border-color: var(--line-2); }
+.clip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.clip.open { border-color: var(--muted); cursor: default; }
+
+/* "Watch on": one button per platform, greyed where the clip isn't posted. */
+.watch { grid-column: 1 / -1; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.watch-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.watch-head span { font-size: 12px; color: var(--muted); }
+.watch-close { background: none; border: 1px solid var(--line-2); color: var(--muted); border-radius: 8px; font: inherit; font-size: 12px;
+  padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+.watch-close:hover { color: var(--text); border-color: var(--muted); }
+.wbtns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wbtn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 76px; padding: 10px 6px;
+  border-radius: 10px; text-decoration: none; color: #fff; font-size: 13px; font-weight: 600; border: 1px solid transparent;
+  transition: transform .08s, filter .12s; text-align: center; }
+.wbtn svg { width: 26px; height: 26px; fill: currentColor; flex: none; }
+.wbtn small { font-size: 11px; font-weight: 500; opacity: .85; }
+a.wbtn:hover { filter: brightness(1.12); }
+a.wbtn:active { transform: scale(.97); }
+a.wbtn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.wbtn.yt { background: #ff0000; }
+/* Instagram's gradient without its pale yellow end, so white text stays readable. */
+.wbtn.ig { background: linear-gradient(135deg, #833ab4 0%, #c13584 40%, #e1306c 68%, #f5484a 88%, #f77737 100%); }
+.wbtn.tt { background: #000; border-color: #2f2f2f; }
+.wbtn.tt svg { filter: drop-shadow(-1.5px -1px 0 #25f4ee) drop-shadow(1.5px 1px 0 #fe2c55); }
+.wbtn.off { background: var(--panel-2); border-color: var(--line); color: var(--faint); cursor: not-allowed; }
+.wbtn.off svg { filter: none; }
+.clip .t { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
+.clip .m { color: var(--muted); font-size: 12px; }
+.clip .big { text-align: right; font-size: 18px; font-weight: 650; white-space: nowrap; }
+.clip .gain { text-align: right; font-size: 12px; color: var(--up); white-space: nowrap; }
+.clip .gain.zero { color: var(--faint); }
+.chips { grid-column: 1 / -1; display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; background: var(--panel-2);
+  border: 1px solid var(--line-2); border-radius: 999px; padding: 3px 10px; }
+/* Each platform's own last-24h gain, in its colour, stacked under the card's total gain. */
+.clip .pg { display: flex; justify-content: flex-end; align-items: center; gap: 5px;
+  font-size: 12px; white-space: nowrap; line-height: 1.35; }
+.clip .pg svg { width: 11px; height: 11px; fill: currentColor; flex: none; }
+.clip .pg.zero { color: var(--faint); }
+.tap-hint { font-size: 12px; color: var(--faint); margin: -4px 0 10px; }
+.more { width: 100%; background: var(--panel); border: 1px solid var(--line); color: var(--muted); border-radius: 10px; padding: 9px; font: inherit; cursor: pointer; }
+
+/* Watch time: per-platform medians, and per clip inside the open panel. */
+.wt .v small { font-size: 13px; font-weight: 500; color: var(--muted); }
+.wt.off .v { color: var(--faint); }
+.hint { font-size: 12px; color: var(--faint); margin: 8px 0 0; }
+.cw { margin-top: 12px; display: grid; gap: 8px; }
+.cw-head { font-size: 12px; color: var(--muted); }
+.cw-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.cw-row svg.logo { width: 14px; height: 14px; fill: currentColor; flex: none; }
+.cw-row b { font-weight: 650; }
+.cw-row .sub { color: var(--muted); font-size: 12px; }
+.cw-row.thin { color: var(--faint); }
+.cw-row.thin b { font-weight: 500; }
+.curve { flex-basis: 100%; }
+.curve svg { display: block; width: 100%; height: 56px; }
+.curve .sub { margin-top: 2px; }
+
+.notice { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; color: var(--muted); }
+footer { color: var(--faint); font-size: 12px; margin-top: 26px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand"><i></i>PodCuts stats</div><span class="fresh" id="fresh"></span>
+    <button class="refresh" id="refresh" hidden>Refresh</button><div class="refresh-note" id="refresh-note" aria-live="polite"></div></header>
+  <main id="main"><div class="notice">Loading…</div></main>
+  <footer>Read-only. The PodCuts PC reads the numbers while its Clipper window is open: every clip, every hour. Refresh asks it to read everything now, and does nothing if the PC is off.</footer>
+</div>
+<script>
+const PLAT = {youtube: ["YouTube", "var(--yt)"], instagram: ["Instagram", "var(--ig)"], tiktok: ["TikTok", "var(--tt)"]};
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const fmt = (n) => n == null ? "–" : Number(n).toLocaleString();
+const short = (n) => {
+  const [div, unit] = n >= 999500 ? [1e6, "M"] : n >= 1e3 ? [1e3, "k"] : [1, ""];
+  const x = n / div;
+  return (unit && x < 9.95 ? x.toFixed(1).replace(/\.0$/, "") : String(Math.round(x))) + unit;
+};
+const t = (s) => new Date(s).getTime();
+function ago(s) {
+  const m = Math.max(0, (Date.now() - t(s)) / 60000);
+  if (m < 60) return `${Math.round(m)} min`;
+  if (m < 48 * 60) return `${Math.round(m / 60)} h`;
+  return `${Math.round(m / 1440)} days`;
+}
+// Same rule as the review page: views picked up after `since`. Posted after
+// it: everything. Otherwise latest minus the last reading before it (or the
+// first reading, when there's none before - an undercount, never invented).
+function gained(p, since) {
+  const s = p.series;
+  if (!s.length) return 0;
+  const latest = s[s.length - 1][1];
+  if (t(p.posted_at) >= since) return latest;
+  const before = s.filter((x) => t(x[0]) <= since);
+  return Math.max(0, latest - (before.length ? before[before.length - 1][1] : s[0][1]));
+}
+
+// Opens on Newest: checked day to day, the latest posts are what matter.
+const S = {sort: "newest", limit: 20};
+let D;
+// A Refresh press waiting for new numbers: {at, before} (before = checked_at when pressed).
+let pending = null;
+const WAIT_MINUTES = 7;
+
+async function load() {
+  try {
+    const r = await fetch(`data.json?t=${Date.now()}`, {cache: "no-store"});
+    if (!r.ok) throw new Error(r.status);
+    D = await r.json();
+  } catch (e) {
+    if (!D) $("#main").innerHTML = `<div class="notice">Couldn't load the numbers. Try again in a minute.</div>`;
+    return;
+  }
+  if (pending && D.checked_at && D.checked_at !== pending.before) {
+    pending = null;
+    note("Updated with the latest numbers.");
+  }
+  draw();
+  drawRefresh();
+}
+
+function note(text, bad = false) {
+  const el = $("#refresh-note");
+  el.textContent = text;
+  el.className = "refresh-note" + (bad ? " bad" : "");
+}
+
+// The button leaves a note on a message relay (ntfy.sh). The PC reads it once a
+// minute while its Clipper window is open, re-reads every post, and republishes.
+function drawRefresh() {
+  const b = $("#refresh"), r = D.refresh || {};
+  if (!r.topic) { b.hidden = true; return; }
+  b.hidden = false;
+  if (pending) {
+    const mins = (Date.now() - pending.at) / 60000;
+    if (mins > WAIT_MINUTES) {
+      pending = null;
+      note("No answer. The PC is probably off, or the Clipper window is closed.", true);
+    } else {
+      b.disabled = true; b.textContent = "Refreshing…";
+      if (!$("#refresh-note").textContent.startsWith("Asked")) note("Asked the PC. New numbers usually show within 2–4 minutes.");
+      return;
+    }
+  }
+  const since = D.checked_at ? (Date.now() - t(D.checked_at)) / 60000 : Infinity;
+  const wait = Math.ceil((r.cooldown_minutes || 15) - since);
+  b.disabled = wait > 0;
+  b.textContent = "Refresh";
+  b.title = wait > 0 ? `Numbers were read ${Math.round(since)} min ago. Refresh again in ${wait} min.` : "Ask the PC to read every post's numbers now";
+}
+
+$("#refresh").addEventListener("click", async () => {
+  const b = $("#refresh");
+  b.disabled = true; b.textContent = "Asking…";
+  try {
+    const r = await fetch(`https://ntfy.sh/${encodeURIComponent(D.refresh.topic)}`, {method: "POST", body: "refresh"});
+    if (!r.ok) throw new Error(r.status);
+  } catch (e) {
+    note("Couldn't send the request. Try again in a minute.", true);
+    return drawRefresh();
+  }
+  pending = {at: Date.now(), before: D.checked_at};
+  note("Asked the PC. New numbers usually show within 2–4 minutes.");
+  drawRefresh();
+});
+
+function draw() {
+  const now = Date.now(), day = now - 864e5, week = now - 7 * 864e5;
+  S.day = day;   // drawClips redraws on its own and needs the same cutoff as the totals
+  const posts = D.posts;
+  if (D.checked_at) {
+    const stale = now - t(D.checked_at) > 12 * 36e5;
+    $("#fresh").className = "fresh" + (stale ? " stale" : "");
+    $("#fresh").textContent = `Checked ${ago(D.checked_at)} ago` + (stale ? " · the PC may be off" : "");
+    $("#fresh").title = new Date(D.checked_at).toLocaleString();
+  }
+  if (!posts.length) { $("#main").innerHTML = `<div class="notice">Nothing posted yet.</div>`; return; }
+
+  const total = posts.reduce((n, p) => n + (p.views || 0), 0);
+  const g24 = posts.reduce((n, p) => n + gained(p, day), 0);
+  const g7 = posts.reduce((n, p) => n + gained(p, week), 0);
+  const posts7 = posts.filter((p) => t(p.posted_at) >= week).length;
+
+  const plats = {};
+  for (const p of posts) {
+    const x = plats[p.platform] ||= {views: 0, posts: 0, g24: 0};
+    x.views += p.views || 0; x.posts += 1; x.g24 += gained(p, day);
+  }
+  const platHtml = Object.entries(plats).sort((a, b) => b[1].views - a[1].views).map(([k, x]) => {
+    const [name, col] = PLAT[k] || [k, "var(--muted)"];
+    const share = total ? x.views / total * 100 : 0;
+    return `<div class="plat"><div class="name"><span class="dot" style="background:${col}"></span>${esc(name)}</div>
+      <div class="v num">${fmt(x.views)}</div>
+      <div class="s num">${x.posts} post${x.posts === 1 ? "" : "s"} · ${x.g24 ? "+" + fmt(x.g24) + " in 24h" : "no change in 24h"}</div>
+      <div class="bar"><b style="width:${share.toFixed(1)}%;background:${col}"></b></div></div>`;
+  }).join("");
+
+  const clips = new Map();
+  for (const p of posts) {
+    const c = clips.get(p.clip) || {key: p.clip, title: p.title, show: p.show, posts: [], views: 0, g24: 0, last: p.posted_at};
+    c.posts.push(p); c.views += p.views || 0; c.g24 += gained(p, day);
+    if (t(p.posted_at) > t(c.last)) c.last = p.posted_at;
+    clips.set(p.clip, c);
+  }
+  const key = {views: (c) => c.views, g24: (c) => c.g24, newest: (c) => t(c.last)}[S.sort];
+  S.rows = [...clips.values()].sort((a, b) => key(b) - key(a));
+  if (S.open != null && !clips.has(S.open)) S.open = null;
+
+  $("#main").innerHTML = `
+    <div class="tiles">
+      <div class="tile"><div class="k">All-time views</div><div class="v num">${fmt(total)}</div><div class="s">${posts.length} posts</div></div>
+      <div class="tile"><div class="k">Last 24 hours</div><div class="v num">+${fmt(g24)}</div></div>
+      <div class="tile"><div class="k">Last 7 days</div><div class="v num">+${fmt(g7)}</div></div>
+      <div class="tile"><div class="k">Posts this week</div><div class="v num">${posts7}</div></div>
+    </div>
+    <section><h2>Total views over time</h2><div class="chart" id="chart"></div></section>
+    <section><h2>By platform</h2><div class="plats">${platHtml}</div></section>
+    ${watchSection()}
+    <section><div class="bar-row"><h2 style="margin:0">Clips</h2><span style="flex:1"></span>
+      <div class="seg">${[["newest", "Newest"], ["views", "Most views"], ["g24", "Last 24h"]].map(([v, l]) => `<button data-sort="${v}" class="${S.sort === v ? "on" : ""}">${l}</button>`).join("")}</div></div>
+      <p class="tap-hint">Tap a clip to watch it.</p>
+      <div id="clips"></div>
+    </section>`;
+  drawClips();
+  drawChart(posts);
+}
+
+// Brand marks (Simple Icons, CC0), drawn in the button's text colour.
+const LOGO = {
+  youtube: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z",
+  instagram: "M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077",
+  tiktok: "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z",
+};
+const WATCH = [["youtube", "yt"], ["instagram", "ig"], ["tiktok", "tt"]];
+
+function watchButtons(c) {
+  return WATCH.map(([pl, cls]) => {
+    const name = PLAT[pl][0], logo = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${LOGO[pl]}"/></svg>`;
+    // A clip reposted on one platform: open its best-performing post.
+    const post = c.posts.filter((p) => p.platform === pl).sort((a, b) => (b.views || 0) - (a.views || 0))[0];
+    if (!post) return `<span class="wbtn ${cls} off" aria-disabled="true" title="Not posted on ${name}">${logo}${name}<small>Not posted</small></span>`;
+    return `<a class="wbtn ${cls}" href="${esc(post.url)}" target="_blank" rel="noopener noreferrer" aria-label="Watch on ${name}">${logo}${name}<small class="num">${post.views == null ? "–" : fmt(post.views)} views</small></a>`;
+  }).join("");
+}
+
+// Watch time, the way the PC's Watch time tab measures it: medians over posts
+// that reached enough viewers for an average to mean anything. Only what the
+// platforms report - TikTok gives nothing, so its numbers are typed in on the PC.
+const pctTxt = (x) => x == null ? "–" : `${Math.round(x)}%`;
+const secTxt = (x) => x == null ? "–" : `${Number(x).toFixed(x < 10 ? 1 : 0)}s`;
+function watchSection() {
+  const W = D.watch;
+  if (!W) return "";
+  const cards = ["instagram", "youtube", "tiktok"].map((pl) => {
+    const x = W.platforms[pl], [name, col] = PLAT[pl];
+    if (!x || !x.posts) return "";
+    if (!x.measured) {
+      const why = pl === "tiktok" ? "TikTok doesn't share watch time; it's typed in from the app on the PC" : `none with ${W.min_reach}+ viewers yet`;
+      return `<div class="plat wt off"><div class="name"><span class="dot" style="background:${col}"></span>${name}</div>
+        <div class="v">–</div><div class="s">${why}</div></div>`;
+    }
+    const stayed = x.stayed != null ? ` · ${pctTxt(x.stayed)} stay past the start` : "";
+    const full = x.full != null ? ` · ${pctTxt(x.full)} watch it all` : "";
+    return `<div class="plat wt"><div class="name"><span class="dot" style="background:${col}"></span>${name}</div>
+      <div class="v num">${pctTxt(x.pct)} <small>of the clip</small></div>
+      <div class="s num">${secTxt(x.s)} average${stayed}${full}</div>
+      <div class="s">${x.measured} of ${x.posts} post${x.posts === 1 ? "" : "s"} measured</div></div>`;
+  }).join("");
+  return `<section><h2>Watch time</h2><div class="plats">${cards}</div>
+    <p class="hint">Medians over posts that reached ${W.min_reach}+ viewers. "Stay past the start": on Instagram, didn't leave in the first 3 seconds; on YouTube, didn't swipe straight past. Tap a clip for its own numbers.</p></section>`;
+}
+
+// A YouTube retention curve: share of viewers still watching across the clip
+// (over 100% at the start because replays count), with the 100% line dashed.
+function curveSvg(pts, col) {
+  const W = 300, H = 56, top = Math.max(1, ...pts);
+  const X = (i) => i / (pts.length - 1) * W, Y = (v) => H - 3 - v / top * (H - 8);
+  const line = pts.map((v, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Viewers still watching across the clip">
+    <line x1="0" x2="${W}" y1="${Y(1)}" y2="${Y(1)}" stroke="var(--line-2)" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>
+    <path d="${line}L${W},${H}L0,${H}Z" fill="${col}" opacity=".12"/>
+    <path d="${line}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+
+function clipWatch(c) {
+  const rows = [];
+  for (const [pl] of WATCH) {
+    // A clip posted twice to one platform: the post with the most views.
+    const p = c.posts.filter((x) => x.platform === pl && x.watch).sort((a, b) => (b.views || 0) - (a.views || 0))[0];
+    if (!p) continue;
+    const w = p.watch, [name, col] = PLAT[pl];
+    const logo = `<svg class="logo" viewBox="0 0 24 24" aria-hidden="true" style="color:${col}"><path d="${LOGO[pl]}"/></svg>`;
+    const bits = [`<b class="num">${secTxt(w.s)}</b> average`, `<b class="num">${pctTxt(w.pct)}</b> of the clip`];
+    if (w.stayed != null) bits.push(`<b class="num">${pctTxt(w.stayed)}</b> stayed past the start`);
+    if (w.full != null) bits.push(`<b class="num">${pctTxt(w.full)}</b> watched it all`);
+    const notes = [!w.trusted && `under ${D.watch?.min_reach ?? 20} viewers, so rough`, w.typed && "typed in from the app"].filter(Boolean);
+    const curve = w.curve && w.curve.pts?.length > 1 ? `<div class="curve">${curveSvg(w.curve.pts, col)}
+      <div class="sub num">${w.curve.end != null ? `${w.curve.end}% still watching at the end` : ""}${w.curve.vs != null ? ` · ${w.curve.vs}/100 against YouTube videos this length (50 is typical)` : ""}</div></div>` : "";
+    rows.push(`<div class="cw-row${w.trusted ? "" : " thin"}">${logo}<span>${name}</span><span>${bits.join(" · ")}</span>
+      ${notes.length ? `<span class="sub">(${notes.join(", ")})</span>` : ""}${curve}</div>`);
+  }
+  return rows.length ? `<div class="cw"><div class="cw-head">Watch time</div>${rows.join("")}</div>` : "";
+}
+
+// One line per platform the clip is on, in the same order as its chips. A clip
+// posted twice to one platform gets one line with both posts added together.
+function platGains(c) {
+  const by = new Map();
+  for (const p of c.posts) by.set(p.platform, (by.get(p.platform) || 0) + gained(p, S.day));
+  return [...by].map(([pl, g]) => {
+    const [name, col] = PLAT[pl] || [pl, "var(--muted)"];
+    const logo = LOGO[pl] ? `<svg viewBox="0 0 24 24" role="img" aria-label="${esc(name)}"><path d="${LOGO[pl]}"/></svg>` : "";
+    return `<div class="pg num${g ? "" : " zero"}" style="${g ? `color:${col}` : ""}" title="${esc(name)}: +${fmt(g)} in the last 24 hours">${logo}<span>+${fmt(g)}</span></div>`;
+  }).join("");
+}
+
+function drawClips() {
+  const el = $("#clips");
+  if (!el) return;
+  const rows = S.rows;
+  el.innerHTML = rows.slice(0, S.limit).map((c) => {
+    const open = S.open === c.key;
+    return `
+    <div class="clip${open ? " open" : ""}" data-clip="${c.key}" role="button" tabindex="0" aria-expanded="${open}">
+      <div><div class="t">${esc(c.title)}</div><div class="m">${esc(c.show)}${c.show ? " · " : ""}posted ${ago(c.last)} ago</div></div>
+      <div><div class="big num">${fmt(c.views)}</div><div class="gain num ${c.g24 ? "" : "zero"}" title="Views gained in the last 24 hours, all platforms">+${fmt(c.g24)} · 24h</div>${platGains(c)}</div>
+      <div class="chips">${c.posts.map((p) => { const [name, col] = PLAT[p.platform] || [p.platform, "var(--muted)"];
+        return `<span class="chip num"><span class="dot" style="background:${col}"></span>${esc(name)} ${p.views == null ? "–" : fmt(p.views)}</span>`; }).join("")}</div>
+      ${open ? `<div class="watch" role="group" aria-label="Watch this clip">
+        <div class="watch-head"><span>Watch on</span><button class="watch-close" data-close aria-label="Close">✕ Close</button></div>
+        <div class="wbtns">${watchButtons(c)}</div>${clipWatch(c)}</div>` : ""}
+    </div>`;
+  }).join("") + (rows.length > S.limit ? `<button class="more" id="more">Show ${Math.min(20, rows.length - S.limit)} more of ${rows.length - S.limit}</button>` : "");
+}
+
+function setOpen(key) {
+  S.open = key;
+  drawClips();
+  if (key != null) document.querySelector(`[data-clip="${key}"]`)?.focus({preventScroll: true});
+}
+
+// Total views as the PC knew them at each reading: every post's latest count up to that moment.
+function drawChart(posts) {
+  const events = posts.flatMap((p, i) => p.series.map(([at, v]) => [t(at), i, v])).sort((a, b) => a[0] - b[0]);
+  const el = $("#chart");
+  if (events.length < 2) { el.innerHTML = `<div class="notice" style="border:0;padding:6px 0">Not enough readings yet.</div>`; return; }
+  // A running total: re-adding every post at every reading made this
+  // readings x posts, which grows with the square of the channel.
+  const cur = new Map(), pts = [];
+  let sum = 0;
+  for (const [ts, i, v] of events) {
+    sum += v - (cur.get(i) || 0);
+    cur.set(i, v);
+    if (pts.length && ts - pts[pts.length - 1][0] < 36e5) pts[pts.length - 1] = [ts, sum]; else pts.push([ts, sum]);
+  }
+  const W = 600, H = 170, x0 = pts[0][0], x1 = Math.max(pts[pts.length - 1][0], x0 + 1), ymax = Math.max(1, ...pts.map((p) => p[1]));
+  const X = (ts) => (ts - x0) / (x1 - x0) * W, Y = (v) => H - 6 - v / ymax * (H - 30);
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join("");
+  const d0 = new Date(x0), d1 = new Date(x1), opts = {day: "numeric", month: "short"};
+  // The drawing stretches to fit, so labels live outside it and keep their shape.
+  const grid = [0.5, 1].map((f) => `<line x1="0" x2="${W}" y1="${Y(ymax * f)}" y2="${Y(ymax * f)}" stroke="var(--line)" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>`).join("");
+  const labels = [0.5, 1].map((f) => `<span class="ylab num" style="top:${Y(ymax * f) - 16}px">${short(Math.round(ymax * f))}</span>`).join("");
+  el.innerHTML = `<div class="tip" id="tip"></div><div class="plot">${labels}
+    <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Total views over time">
+      ${grid}
+      <path d="${line}L${W},${H}L0,${H}Z" fill="var(--accent)" opacity=".08"/>
+      <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>
+      <line id="cursor" y1="0" y2="${H}" stroke="var(--muted)" stroke-width="1" vector-effect="non-scaling-stroke" visibility="hidden"/>
+    </svg></div>
+    <div class="axis"><span>${d0.toLocaleDateString(undefined, opts)}</span><span>${d1.toLocaleDateString(undefined, opts)}</span></div>`;
+  const svg = el.querySelector("svg"), tip = $("#tip"), cursor = el.querySelector("#cursor");
+  const show = (ev) => {
+    const r = svg.getBoundingClientRect(), ts = x0 + (ev.clientX - r.left) / r.width * (x1 - x0);
+    let best = pts[0];
+    for (const p of pts) if (Math.abs(p[0] - ts) < Math.abs(best[0] - ts)) best = p;
+    cursor.setAttribute("x1", X(best[0])); cursor.setAttribute("x2", X(best[0])); cursor.setAttribute("visibility", "visible");
+    tip.innerHTML = `<b class="num">${fmt(best[1])}</b> · ${new Date(best[0]).toLocaleString(undefined, {...opts, hour: "numeric", minute: "2-digit"})}`;
+  };
+  const hide = () => { cursor.setAttribute("visibility", "hidden"); tip.innerHTML = ""; };
+  svg.addEventListener("pointermove", show); svg.addEventListener("pointerdown", show); svg.addEventListener("pointerleave", hide);
+}
+
+document.addEventListener("click", (ev) => {
+  const tgt = ev.target;
+  // Inside the open "Watch on" panel: links open normally, Close shuts it, greyed buttons do nothing.
+  if (tgt.closest(".watch")) {
+    if (tgt.closest("[data-close]")) setOpen(null);
+    return;
+  }
+  const card = tgt.closest("[data-clip]");
+  if (card) return setOpen(S.open === +card.dataset.clip ? null : +card.dataset.clip);
+  const hadOpen = S.open != null;
+  if (hadOpen) S.open = null;          // a tap anywhere else closes it
+  const b = tgt.closest("[data-sort]");
+  if (b) { S.sort = b.dataset.sort; S.limit = 20; return draw(); }
+  if (tgt.closest("#more")) { S.limit += 20; return drawClips(); }
+  if (hadOpen) drawClips();
+});
+document.addEventListener("keydown", (ev) => {
+  if (ev.key === "Escape" && S.open != null) return setOpen(null);
+  const card = ev.target.closest?.("[data-clip]");
+  if (card && ev.target === card && (ev.key === "Enter" || ev.key === " ")) {
+    ev.preventDefault();
+    setOpen(S.open === +card.dataset.clip ? null : +card.dataset.clip);
+  }
+});
+load();
+// A tab left open keeps up by itself; while a Refresh is pending, look every 15 seconds.
+let lastLoad = Date.now();
+setInterval(() => {
+  if (pending || Date.now() - lastLoad > 5 * 60 * 1000) { lastLoad = Date.now(); load(); }
+  else if (D) drawRefresh();
+}, 15 * 1000);
+</script>
+</body>
+</html>

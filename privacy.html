@@ -1,0 +1,129 @@
+<!doctype html>
+<!-- Terms and privacy for the PodCuts desktop tool. Served from the stats site so
+     the TikTok developer portal has real URLs to point at. Two pages from one file:
+     statsite.publish() writes it twice and the heading picks itself from the path. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>PodCuts</title>
+<style>
+:root {
+  --bg: #0e0f11; --panel: #16171a; --line: #27292e;
+  --text: #ebe9e5; --muted: #8d9097; --accent: #ffb321;
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+body { margin: 0; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 28px 18px 64px; }
+.brand { display: flex; align-items: center; gap: 9px; font-weight: 650; letter-spacing: .01em; }
+.brand i { width: 10px; height: 20px; border-radius: 2px; background: var(--accent); display: inline-block; }
+h1 { font-size: 24px; margin: 26px 0 4px; }
+h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+     letter-spacing: .06em; margin: 26px 0 8px; }
+.updated { color: var(--muted); font-size: 13px; margin: 0 0 22px; }
+p, li { color: var(--text); }
+ul { padding-left: 20px; }
+li { margin: 5px 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin: 16px 0; }
+.muted { color: var(--muted); }
+a { color: var(--accent); }
+footer { margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><i></i> PodCuts</div>
+  <div id="body"></div>
+  <footer>
+    <a href="./">Stats</a> · <a href="./terms.html">Terms of Service</a> · <a href="./privacy.html">Privacy Policy</a>
+  </footer>
+</div>
+<script>
+const TERMS = `
+  <h1>Terms of Service</h1>
+  <p class="updated">Last updated 15 September 2026</p>
+
+  <p>PodCuts is a personal desktop tool, run by one person on their own computer.
+     It cuts publicly available podcast and interview videos into short vertical clips
+     and helps its operator post them to their own social accounts.</p>
+
+  <h2>Who can use it</h2>
+  <p>PodCuts is not offered to the public. There are no accounts, no sign-ups and no
+     paid plans. It runs locally for its operator only.</p>
+
+  <h2>Use of TikTok</h2>
+  <p>PodCuts connects to TikTok solely to upload video files to the operator's own
+     TikTok drafts, using the operator's own authorisation. It does not post publicly
+     on anyone's behalf, does not read or collect other people's TikTok content, and
+     does not act for any third party.</p>
+
+  <h2>Content</h2>
+  <p>The operator is responsible for the clips they create and post, and for holding
+     whatever rights are needed to post them. Clips are reviewed by hand before
+     anything is uploaded. PodCuts does not remove watermarks or alter audio or video
+     to avoid content matching.</p>
+
+  <h2>No warranty</h2>
+  <p>The tool is provided as is, with no warranty of any kind. It may stop working at
+     any time, for example if a platform changes its API.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this tool can be raised through the
+     <a href="https://github.com/ttari5/podcuts-stats">project repository</a>.</p>
+`;
+
+const PRIVACY = `
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated 15 September 2026</p>
+
+  <p>PodCuts is a personal desktop tool that runs on one person's own computer. It has
+     no users other than its operator, and it collects no information from anyone else.</p>
+
+  <div class="card">
+    <b>PodCuts has no server.</b>
+    <p class="muted" style="margin:6px 0 0">There is no database and no backend that
+       receives your data. Everything the tool holds sits in files on the operator's own PC.</p>
+  </div>
+
+  <h2>What is stored, and where</h2>
+  <ul>
+    <li>Access tokens for the operator's own social accounts, kept in a file on their PC
+        so the tool can upload on their behalf. These are never shared or transmitted
+        anywhere except back to the platform that issued them.</li>
+    <li>Video and audio downloaded from public sources, plus the clips made from it,
+        kept locally.</li>
+    <li>View, like and comment counts for the operator's own posts, kept locally.</li>
+  </ul>
+
+  <h2>What is made public</h2>
+  <p>A read-only page on this site shows how the operator's own posts are performing:
+     clip titles, which platform each went to, links to the posts, and their view, like
+     and comment counts. No personal data, credentials or account identifiers are
+     published, and the page cannot send anything back to the operator's computer.</p>
+
+  <h2>Information from TikTok</h2>
+  <p>When TikTok is connected, the tool receives an access token, a user identifier and
+     the account's display name. These are stored locally and used only to upload video
+     files to that same account's drafts. They are not sold, shared, or used for
+     advertising, profiling or any other purpose.</p>
+
+  <h2>Other people's data</h2>
+  <p>PodCuts does not collect, buy or process personal information about members of the
+     public. It does not track visitors to this site, and sets no cookies.</p>
+
+  <h2>Retention and removal</h2>
+  <p>Local files are kept for as long as the operator finds them useful and can be
+     deleted at any time. Disconnecting a platform deletes the stored token for it.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy can be raised through the
+     <a href="https://github.com/ttari5/podcuts-stats">project repository</a>.</p>
+`;
+
+const isPrivacy = location.pathname.toLowerCase().includes("privacy");
+document.getElementById("body").innerHTML = isPrivacy ? PRIVACY : TERMS;
+document.title = (isPrivacy ? "Privacy Policy" : "Terms of Service") + " · PodCuts";
+</script>
+</body>
+</html>
