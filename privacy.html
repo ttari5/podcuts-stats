@@ -1,0 +1,121 @@
+<!doctype html>
+<!-- Terms and privacy for PodCuts (Pith). Served from the stats site so Google's and
+     TikTok's developer consoles have real URLs to point at. Two pages from one file:
+     statsite.policy_html() keeps one of the marked sections. Plain HTML, no script:
+     Google's checks read the page without running it. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Privacy Policy · PodCuts</title>
+<meta name="theme-color" content="#0b0b0a">
+<style>
+/* Pith's look (ink, paper, one vermilion), system typefaces only: no requests to anyone. */
+:root {
+  --ink-0: #0b0b0a; --ink-1: #121211; --hair: rgba(242, 238, 230, .075); --hair-2: rgba(242, 238, 230, .13);
+  --paper: #f2eee6; --paper-2: #b3ada2; --paper-3: #8a847a; --paper-4: #625e57; --signal: #ff5b27;
+  --f-display: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, ui-serif, serif;
+  --f-mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, "Roboto Mono", monospace;
+  font-family: system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+html { -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--ink-0); color: var(--paper); font-size: 15.5px; line-height: 1.65; }
+.wrap { max-width: 680px; margin: 0 auto; padding: 34px 20px 72px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font: 500 10.5px/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--paper-3); }
+.brand i { width: 5px; height: 9px; border-radius: 1px; background: var(--signal); display: inline-block; }
+h1 { font: 400 clamp(40px, 8vw, 58px)/1.02 var(--f-display); letter-spacing: -.03em; margin: 26px 0 10px; }
+h2 { font: 500 10.5px/1.3 var(--f-mono); color: var(--paper-3); text-transform: uppercase; letter-spacing: .14em; margin: 34px 0 10px;
+     padding-top: 18px; border-top: 1px solid var(--hair); }
+.updated { color: var(--paper-3); font: 500 11px/1 var(--f-mono); letter-spacing: .06em; margin: 0 0 28px; }
+p, li { color: var(--paper-2); }
+p:first-of-type + p, .updated + p { color: var(--paper); font-size: 17px; }
+ul { padding-left: 20px; }
+li { margin: 7px 0; }
+li::marker { color: var(--paper-4); }
+.card { background: var(--ink-1); border: 1px solid var(--hair-2); border-left: 2px solid var(--signal); border-radius: 12px; padding: 16px 18px; margin: 22px 0; }
+.card b { font-weight: 600; color: var(--paper); }
+.muted { color: var(--paper-3); }
+a { color: var(--paper); text-decoration-color: var(--paper-4); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--signal); }
+footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid var(--hair); color: var(--paper-3); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><i></i>PodCuts</div>
+  <!-- privacy -->
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated 23 November 2026</p>
+
+  <p>PodCuts (its control page is called Pith) is a personal tool run by one person on
+     their own computers. Its only user is its operator, and it collects no information
+     from anyone else.</p>
+
+  <div class="card">
+    <b>No server of its own, no database of other people.</b>
+    <p class="muted" style="margin:6px 0 0">Everything the tool holds sits in files on the
+       operator's own PC and laptop.</p>
+  </div>
+
+  <h2>YouTube API Services</h2>
+  <p>PodCuts uses the YouTube API Services. Google's handling of data is described in the
+     <a href="http://www.google.com/policies/privacy">Google Privacy Policy</a>. PodCuts's
+     use of information received from Google APIs follows the
+     <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API
+     Services User Data Policy</a>, including its Limited Use requirements.</p>
+  <p>When the operator signs in with Google, PodCuts asks for three permissions on the
+     operator's own channel:</p>
+  <ul>
+    <li><b>YouTube Analytics (read only):</b> views, average view duration, percentage viewed
+        and audience retention for the channel's own videos, read about once an hour.</li>
+    <li><b>YouTube account (read only):</b> the channel's ID and name, to check the sign-in
+        belongs to the channel the clips are for.</li>
+    <li><b>Upload videos:</b> to upload a rendered clip to that channel, only when the
+        operator presses the upload button for that clip. The title, description and
+        privacy setting are shown before it is sent.</li>
+  </ul>
+
+  <h2>What is stored, and where</h2>
+  <ul>
+    <li>Google's access and refresh tokens for the operator's channel, in a file on the
+        operator's computers. They are sent only back to Google.</li>
+    <li>The channel's analytics figures listed above, stored with each of the operator's
+        own posts and refreshed while the post is tracked.</li>
+    <li>Tokens for the operator's own Instagram, TikTok and Buffer accounts, used only to
+        post to those accounts.</li>
+    <li>Video and audio downloaded from public sources, and the clips made from it.</li>
+  </ul>
+
+  <h2>Sharing</h2>
+  <p>Data received from Google is used only to show the operator how their own videos
+     perform and to upload their clips. It is not sold, shared with anyone, used for
+     advertising, or combined with data about other people. PodCuts shows no ads.</p>
+
+  <h2>Cookies</h2>
+  <p>PodCuts does not place cookies on visitors' devices. This site sets no cookies and
+     does not track visitors. The operator's own control page is behind a sign-in that
+     uses a cookie on the operator's own browser only.</p>
+
+  <h2>Revoking access, and deletion</h2>
+  <p>Google access can be removed at any time on the
+     <a href="https://security.google.com/settings/security/permissions">Google security
+     settings page</a>, or with Disconnect on PodCuts's Accounts page. Disconnecting deletes
+     the stored tokens straight away. The operator deletes the stored YouTube analytics
+     figures within 7 days of disconnecting, and within 30 days of a revocation made on
+     Google's page. Every 30 days PodCuts checks that its Google access is still allowed.</p>
+
+  <h2>Other people's data</h2>
+  <p>PodCuts does not collect, buy or process personal information about members of the
+     public.</p>
+
+  <h2>Contact</h2>
+  <p>Questions or complaints about this policy: <!-- contact --><a href="mailto:taimoortariqpk@gmail.com">taimoortariqpk@gmail.com</a><!-- /contact -->.</p>
+  <!-- /privacy -->
+  <footer>
+    <a href="./">Stats</a> · <a href="./terms.html">Terms of Service</a> · <a href="./privacy.html">Privacy Policy</a>
+  </footer>
+</div>
+</body>
+</html>
